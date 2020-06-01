@@ -1,7 +1,7 @@
 package br.com.bank.core.api.handlers;
 
 import br.com.bank.core.api.ApiErrorResponse;
-import br.com.bank.core.entity.Transaction;
+import br.com.bank.core.entity.TransactionEntity;
 import br.com.bank.core.exceptions.CoreException;
 import br.com.bank.core.services.implementation.TransactionService;
 import br.com.bank.core.utils.HandlerResponseUtils;
@@ -28,7 +28,7 @@ public class TransactionHandler {
 
     public Mono<ServerResponse> executeTransactionRequest(final ServerRequest request){
         logger.debug("Endpoint called - executeTransactionRequest");
-        return request.body(BodyExtractors.toMono(Transaction.class))
+        return request.body(BodyExtractors.toMono(TransactionEntity.class))
                 .flatMap(t -> {
                     return this.transactionService
                             .executeTransaction(t)

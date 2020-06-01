@@ -1,10 +1,10 @@
 package br.com.bank.core.services;
 
-import br.com.bank.core.entity.Transaction;
+import br.com.bank.core.entity.TransactionEntity;
 import reactor.core.publisher.Mono;
 
 public interface ITransactionService {
 
-    Mono<Transaction> executeTransaction(Transaction transaction) throws Exception;
+    Mono<TransactionEntity> executeTransaction(TransactionEntity transaction) throws Exception;
 
 }

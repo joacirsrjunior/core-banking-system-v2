@@ -1,6 +1,6 @@
 package br.com.bank.core.repository;
 
-import br.com.bank.core.entity.Transaction;
+import br.com.bank.core.entity.TransactionEntity;
 import br.com.bank.core.services.implementation.TransactionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
 @Repository
 public class TransactionRepository {
 
-    private static final Logger logger = LoggerFactory.getLogger(TransactionService.class);
+    private static final Logger logger = LoggerFactory.getLogger(TransactionRepository.class);
 
     private ReactiveMongoTemplate reactiveMongoTemplate;
 
@@ -21,17 +21,19 @@ public class TransactionRepository {
         this.reactiveMongoTemplate = reactiveMongoTemplate;
     }
 
-    public Mono<Transaction> insert(Transaction transaction) {
+    public Mono<TransactionEntity> insert(TransactionEntity transaction) {
+        logger.debug("Inserting transaction...");
         return reactiveMongoTemplate.insert(transaction);
     }
 
-    public Mono<Transaction> save(Transaction transaction) {
+    public Mono<TransactionEntity> save(TransactionEntity transaction) {
         logger.debug("Saving transaction into database...");
         return reactiveMongoTemplate.save(transaction);
     }
 
     public Mono<Void> deleteAll(){
-        return reactiveMongoTemplate.dropCollection(Transaction.class);
+        logger.debug("Deleting all transactions...");
+        return reactiveMongoTemplate.dropCollection(TransactionEntity.class);
     }
 
 }

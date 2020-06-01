@@ -1,8 +1,9 @@
 package br.com.bank.core.services.implementation;
 
 import br.com.bank.core.api.ApiErrorResponse;
-import br.com.bank.core.entity.Account;
-import br.com.bank.core.entity.Transaction;
+import br.com.bank.core.api.dto.mapper.AccountMapper;
+import br.com.bank.core.entity.AccountEntity;
+import br.com.bank.core.entity.TransactionEntity;
 import br.com.bank.core.enums.ETransactionType;
 import br.com.bank.core.enums.EValidationResponse;
 import br.com.bank.core.exceptions.CoreException;
@@ -36,11 +37,11 @@ public class TransactionService implements ITransactionService {
     }
 
     @Override
-    public Mono<Transaction> executeTransaction(Transaction transaction) {
+    public Mono<TransactionEntity> executeTransaction(TransactionEntity transaction) {
 
         logger.debug("Processing a new transaction : {}", transaction.toString());
 
-        return transactionValidation.validate(transaction)
+        return TransactionValidation.validateAll(transaction)
                 .flatMap(t -> {
                     logger.debug("Verifing if account exists...");
                     return accountService.verifyAccountExistence(t.getAccount());
@@ -53,7 +54,7 @@ public class TransactionService implements ITransactionService {
                 .flatMap(transactionRepository::save)
                 .flatMap(t -> {
                     logger.debug("Changing the account balance...");
-                    if(t.getTransactionType().equals(ETransactionType.CREDIT)){
+                    if(t.getOperationType().getTransactionType().equals(ETransactionType.CREDIT)){
                         return this.sensibilizeAccountWithCreditOperation(t);
                     } else {
                         return this.sensibilizeAccountWithDebitOperation(t);
@@ -67,28 +68,30 @@ public class TransactionService implements ITransactionService {
 
     }
 
-    private Mono<Transaction> sensibilizeAccountWithCreditOperation(Transaction transaction){
+    private Mono<TransactionEntity> sensibilizeAccountWithCreditOperation(TransactionEntity transaction){
         logger.debug("Credit transaction...");
         return sensibilizeAccountBalance(transaction);
     }
 
-    private Mono<Transaction> sensibilizeAccountWithDebitOperation(Transaction transaction){
+    private Mono<TransactionEntity> sensibilizeAccountWithDebitOperation(TransactionEntity transaction){
         logger.debug("Debit transaction...");
         return this.verifyEnoughtMoneyForDebitTransaction(transaction)
                 .flatMap(this::sensibilizeAccountBalance);
     }
 
-    private Mono<Transaction> sensibilizeAccountBalance(Transaction transaction){
-        logger.debug("Changing account balance. Branch {} - Account {}",
-                transaction.getAccount().getBranchNumber(), transaction.getAccount().getAccountNumber());
-        Account affectedAccount = transaction.getAccount();
-        if(transaction.getTransactionType().equals(ETransactionType.CREDIT)){
+    private Mono<TransactionEntity> sensibilizeAccountBalance(TransactionEntity transaction){
+        logger.debug("Changing account balance. Account {}", transaction.getAccount().getDocumentNumber());
+        AccountEntity affectedAccount = transaction.getAccount();
+        if(transaction.getOperationType().getTransactionType().equals(ETransactionType.CREDIT)){
             affectedAccount.setBalance(affectedAccount.getBalance().add(transaction.getAmount()));
-        } else {
+        } else if(transaction.getOperationType().getTransactionType().equals(ETransactionType.DEBIT)){
             affectedAccount.setBalance(affectedAccount.getBalance().subtract(transaction.getAmount()));
+        } else {
+            logger.error("Transaction with invalid operation or transaction type");
+            throw new CoreException(new ApiErrorResponse(EValidationResponse.TRANSACTION_TYPE_INVALID));
         }
         logger.debug("Saving new account balance...");
-        Mono<Account> resultAccount = accountService.save(affectedAccount);
+        Mono<AccountEntity> resultAccount = accountService.save(affectedAccount);
         return resultAccount
                 .flatMap(ac -> {
                         transaction.setAccount(ac);
@@ -97,7 +100,7 @@ public class TransactionService implements ITransactionService {
                 });
     }
 
-    private Mono<Transaction> verifyEnoughtMoneyForDebitTransaction(Transaction transaction){
+    private Mono<TransactionEntity> verifyEnoughtMoneyForDebitTransaction(TransactionEntity transaction){
         if(transaction.getAccount().getBalance().compareTo(transaction.getAmount()) >= 0){
             return Mono.just(transaction);
         }

@@ -11,7 +11,7 @@ import org.springframework.web.reactive.function.server.*;
 import static org.springframework.web.reactive.function.server.RequestPredicates.*;
 
 @Configuration
-public class AccountRouter extends BaseRouter {
+public class AccountRouter {
 
     private static final Logger logger = LoggerFactory.getLogger(AccountRouter.class);
 
@@ -19,18 +19,13 @@ public class AccountRouter extends BaseRouter {
     public RouterFunction<ServerResponse> accountRoute(AccountHandler accountHandler){
         logger.debug("accountRoute called");
         return RouterFunctions
-                .route(GET("/account")
+                .route(GET("/accounts")
                         .and(accept(MediaType.APPLICATION_JSON)), accountHandler::findAll)
-                .andRoute(GET("/account/{id}")
+                .andRoute(GET("/accounts/{accountId}")
                         .and(accept(MediaType.APPLICATION_JSON)), accountHandler::findById)
-                .andRoute(GET("/account/{accountNumber}/branch/{branchNumber}/balance")
+                .andRoute(GET("/accounts/{accountDocumentNumber}/balance")
                         .and(accept(MediaType.APPLICATION_JSON)), accountHandler::getCurrentBalance)
-                .andRoute(POST("/account").and(accept(MediaType.APPLICATION_JSON)), accountHandler::save);
-    }
-
-    @Override
-    Logger getLogger() {
-        return logger;
+                .andRoute(POST("/accounts").and(accept(MediaType.APPLICATION_JSON)), accountHandler::create);
     }
 
 }

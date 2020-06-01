@@ -2,17 +2,23 @@ package br.com.bank.core.enums;
 
 public enum ETransactionType {
 
-    CREDIT("C"),
-    DEBIT("D");
+    CREDIT( "Crédito", +1),
+    DEBIT("Débito", -1);
 
-    private String operationType;
+    private String transactionType;
+    private Integer signal;
 
-    ETransactionType(String operationType){
-        this.operationType = operationType;
+    ETransactionType(String transactionType, Integer signal) {
+        this.transactionType = transactionType;
+        this.signal = signal;
     }
 
-    public String getOperationType(){
-        return this.operationType;
+    public String getTransactionType() {
+        return transactionType;
+    }
+
+    public Integer getSignal() {
+        return signal;
     }
 
 }

@@ -1,7 +1,8 @@
 package br.com.bank.core.services.implementation;
 
-import br.com.bank.core.entity.Account;
-import br.com.bank.core.entity.Transaction;
+import br.com.bank.core.entity.AccountEntity;
+import br.com.bank.core.entity.TransactionEntity;
+import br.com.bank.core.enums.EOperationType;
 import br.com.bank.core.enums.ETransactionType;
 import br.com.bank.core.exceptions.CoreException;
 import org.junit.jupiter.api.Assertions;
@@ -22,14 +23,13 @@ import static org.junit.Assert.assertTrue;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class TransactionServiceTests {
 
-    private static final String BRANCH = "0001";
     private static final String ACCOUNT = "44758-1";
 
     private TransactionService service;
 
     private AccountService serviceAccount;
 
-    private Transaction transaction;
+    private TransactionEntity transaction;
 
     @Autowired
     public TransactionServiceTests(TransactionService service, AccountService serviceAccount) {
@@ -39,8 +39,7 @@ public class TransactionServiceTests {
 
     @BeforeEach
     public void before(){
-        transaction = new Transaction(null,
-                new Account(this.BRANCH, this.ACCOUNT), ETransactionType.CREDIT,null);
+        transaction = new TransactionEntity(new AccountEntity(this.ACCOUNT), EOperationType.PAYMENT,null);
     }
 
     @Test
@@ -48,7 +47,7 @@ public class TransactionServiceTests {
 
         for(int nTests = 10; nTests <= 10; nTests++ ) {
             BigDecimal creditAmount = new BigDecimal(new Random().nextInt(9));
-            Transaction response = this.executeCreditTransaction(creditAmount);
+            TransactionEntity response = this.executeCreditTransaction(creditAmount);
             assertFalse(response.getAmount().compareTo(creditAmount) < 0);
         }
 
@@ -71,7 +70,7 @@ public class TransactionServiceTests {
 
         Assertions.assertThrows(CoreException.class, () -> {
             BigDecimal debitAmount = new BigDecimal(1000000);
-            Transaction response = this.executeDeditTransaction(debitAmount);
+            TransactionEntity response = this.executeDeditTransaction(debitAmount);
         });
 
     }
@@ -79,10 +78,10 @@ public class TransactionServiceTests {
     @Test
     public void verifyIfBalanceIsCorrectAfterACreditTransaction(){
 
-        Account account = new Account(this.BRANCH, this.ACCOUNT);
+        AccountEntity account = new AccountEntity(this.ACCOUNT);
         BigDecimal amountToCredit = new BigDecimal(1000);
         BigDecimal balanceBefore = this.getCurrentBalance(account);
-        Transaction response = this.executeCreditTransaction(amountToCredit);
+        TransactionEntity response = this.executeCreditTransaction(amountToCredit);
         BigDecimal finalAmount = balanceBefore.add(amountToCredit);
         assertTrue(finalAmount.compareTo(response.getAccount().getBalance()) == 0);
 
@@ -109,13 +108,13 @@ public class TransactionServiceTests {
     @Test
     public void verifyIfBalanceIsCorrectAfterADebitTransaction(){
 
-        Account account = new Account(this.BRANCH, this.ACCOUNT);
+        AccountEntity account = new AccountEntity(this.ACCOUNT);
         account.setBalance(new BigDecimal(2500));
         serviceAccount.save(account);
 
         BigDecimal amountToDebit = new BigDecimal(500);
         BigDecimal balanceBefore = this.getCurrentBalance(account);
-        Transaction response = this.executeDeditTransaction(amountToDebit);
+        TransactionEntity response = this.executeDeditTransaction(amountToDebit);
         BigDecimal finalAmount = balanceBefore.subtract(amountToDebit);
         assertTrue(finalAmount.compareTo(response.getAccount().getBalance()) == 0);
 
@@ -139,20 +138,20 @@ public class TransactionServiceTests {
 
     }
 
-    private Transaction executeCreditTransaction(BigDecimal creditAmount){
-        transaction.setTransactionType(ETransactionType.CREDIT);
+    private TransactionEntity executeCreditTransaction(BigDecimal creditAmount){
+        transaction.setOperationType(EOperationType.PAYMENT);
         transaction.setAmount(creditAmount);
         return service.executeTransaction(this.transaction).block();
     }
 
-    private Transaction executeDeditTransaction(BigDecimal creditAmount){
-        transaction.setTransactionType(ETransactionType.DEBIT);
+    private TransactionEntity executeDeditTransaction(BigDecimal creditAmount){
+        transaction.setOperationType(EOperationType.WITHDRAW);
         transaction.setAmount(creditAmount);
         return service.executeTransaction(this.transaction).block();
     }
 
-    private BigDecimal getCurrentBalance(Account account){
-        Account resp = serviceAccount.getCurrentBalance(account).block();
+    private BigDecimal getCurrentBalance(AccountEntity account){
+        AccountEntity resp = serviceAccount.getCurrentBalance(account).block();
         return resp.getBalance();
     }
 

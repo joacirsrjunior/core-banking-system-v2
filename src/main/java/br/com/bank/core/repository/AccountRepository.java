@@ -1,17 +1,18 @@
 package br.com.bank.core.repository;
 
-import br.com.bank.core.entity.Account;
+import br.com.bank.core.entity.AccountEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import static org.springframework.data.mongodb.core.query.Criteria.where;
-
 @Repository
 public class AccountRepository {
+
+    private static final Logger logger = LoggerFactory.getLogger(AccountRepository.class);
 
     private ReactiveMongoTemplate reactiveMongoTemplate;
 
@@ -20,49 +21,43 @@ public class AccountRepository {
         this.reactiveMongoTemplate = reactiveMongoTemplate;
     }
 
-    public Mono<Account> insert(Account account) {
+    public Mono<AccountEntity> insert(AccountEntity account) {
+        logger.debug("Inserting new account...");
         return reactiveMongoTemplate.insert(account);
     }
 
-    public Mono<Account> save(Account account) {
+    public Mono<AccountEntity> save(AccountEntity account) {
+        logger.debug("Saving account...");
         return reactiveMongoTemplate.save(account);
     }
 
-    public Mono<Account> delete(Account account) {
+    public Mono<AccountEntity> delete(AccountEntity account) {
+        logger.debug("Deleting account...");
         return reactiveMongoTemplate.remove(account)
                 .flatMap(a -> Mono.just(account)).onErrorResume(error -> Mono.error(error));
     }
 
     public Mono<Void> deleteAll(){
-        return reactiveMongoTemplate.dropCollection(Account.class);
+        logger.debug("Deleting all accounts...");
+        return reactiveMongoTemplate.dropCollection(AccountEntity.class);
     }
 
-    public Flux<Account> findAll(){
-        return reactiveMongoTemplate.findAll(Account.class);
+    public Flux<AccountEntity> findAll(){
+        logger.debug("Find all accounts...");
+        return reactiveMongoTemplate.findAll(AccountEntity.class);
     }
 
-    public Mono<Account> findById(String id) {
-        return reactiveMongoTemplate.findById(id, Account.class);
+    public Mono<AccountEntity> findById(String id) {
+        logger.debug("Find account by ID...");
+        return reactiveMongoTemplate.findById(id, AccountEntity.class);
     }
 
-    public Flux<Account> findByBranch(Account accountFilter) {
-        return reactiveMongoTemplate.findAll(Account.class)
-                .filter(account -> account.getBranchNumber()
-                        .compareToIgnoreCase(accountFilter.getBranchNumber()) == 0);
-    }
-
-    public Flux<Account> findByAccountNumber(Account accountFilter) {
-        return reactiveMongoTemplate.findAll(Account.class)
-                .filter(account -> account.getAccountNumber()
-                        .compareToIgnoreCase(accountFilter.getAccountNumber()) == 0);
-    }
-
-    public Mono<Account> findByBranchAndAccountNumber(Account accountFilter) {
-        Query queryBranchFilter = new Query(where("branchNumber").is(accountFilter.getBranchNumber()));
-        return reactiveMongoTemplate.find(queryBranchFilter, Account.class)
-                    .filter(account -> account.getAccountNumber()
-                            .compareToIgnoreCase(accountFilter.getAccountNumber()) == 0)
-                    .elementAt(0, new Account());
+    public Mono<AccountEntity> findByAccountDocumentNumber(AccountEntity accountFilter) {
+        logger.debug("Find account by document number...");
+        return reactiveMongoTemplate.findAll(AccountEntity.class)
+                .filter(account -> account.getDocumentNumber()
+                        .compareToIgnoreCase(accountFilter.getDocumentNumber()) == 0)
+                .elementAt(0, new AccountEntity());
     }
 
 }

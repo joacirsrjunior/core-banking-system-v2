@@ -12,7 +12,7 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 import static org.springframework.web.reactive.function.server.RequestPredicates.accept;
 
 @Configuration
-public class TransactionRouter extends BaseRouter {
+public class TransactionRouter {
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionRouter.class);
 
@@ -20,13 +20,8 @@ public class TransactionRouter extends BaseRouter {
     public RouterFunction<ServerResponse> transactionRoute(TransactionHandler transactionHandler){
         logger.debug("transactionRoute called");
         return RouterFunctions
-                .route(POST("/transaction")
+                .route(POST("/transactions")
                         .and(accept(MediaType.APPLICATION_JSON)), transactionHandler::executeTransactionRequest);
-    }
-
-    @Override
-    Logger getLogger() {
-        return logger;
     }
 
 }
