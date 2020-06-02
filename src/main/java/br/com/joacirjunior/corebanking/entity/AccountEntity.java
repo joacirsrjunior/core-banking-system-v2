@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.Objects;
 
 @Entity
@@ -22,6 +23,10 @@ public class AccountEntity extends BaseEntity {
     @NumberFormat(pattern = "#,###,###,###.##")
     private BigDecimal balance;
 
+    @Column(name = "available_limit")
+    @NumberFormat(pattern = "#,###,###,###.##")
+    private BigDecimal availableLimit;
+
     public AccountEntity(){
         super();
     }
@@ -36,6 +41,19 @@ public class AccountEntity extends BaseEntity {
         super(id);
         this.documentNumber = documentNumber;
         this.balance = balance;
+    }
+
+    public AccountEntity(String documentNumber, BigDecimal balance, BigDecimal availableLimit) {
+        this.documentNumber = documentNumber;
+        this.balance = balance;
+        this.availableLimit = availableLimit;
+    }
+
+    public AccountEntity(Long id, String documentNumber, BigDecimal balance, BigDecimal availableLimit) {
+        super(id);
+        this.documentNumber = documentNumber;
+        this.balance = balance;
+        this.availableLimit = availableLimit;
     }
 
     public String getDocumentNumber() {
@@ -54,6 +72,14 @@ public class AccountEntity extends BaseEntity {
         this.balance = balance;
     }
 
+    public BigDecimal getAvailableLimit() {
+        return availableLimit;
+    }
+
+    public void setAvailableLimit(BigDecimal availableLimit) {
+        this.availableLimit = availableLimit;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -61,12 +87,13 @@ public class AccountEntity extends BaseEntity {
         if (!super.equals(o)) return false;
         AccountEntity that = (AccountEntity) o;
         return Objects.equals(documentNumber, that.documentNumber) &&
-                Objects.equals(balance, that.balance);
+                Objects.equals(balance, that.balance) &&
+                Objects.equals(availableLimit, that.availableLimit);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), documentNumber, balance);
+        return Objects.hash(super.hashCode(), documentNumber, balance, availableLimit);
     }
 
     @Override
@@ -74,6 +101,7 @@ public class AccountEntity extends BaseEntity {
         return "AccountEntity{" +
                 "documentNumber='" + documentNumber + '\'' +
                 ", balance=" + balance +
+                ", availableLimit=" + availableLimit +
                 '}';
     }
 

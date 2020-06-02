@@ -5,9 +5,10 @@ import br.com.joacirjunior.corebanking.dto.TransactionDTO;
 import br.com.joacirjunior.corebanking.dto.mapper.TransactionMapper;
 import br.com.joacirjunior.corebanking.entity.AccountEntity;
 import br.com.joacirjunior.corebanking.entity.TransactionEntity;
+import br.com.joacirjunior.corebanking.enums.ELimitProfile;
 import br.com.joacirjunior.corebanking.enums.ETransactionType;
 import br.com.joacirjunior.corebanking.enums.EValidationResponse;
-import br.com.joacirjunior.corebanking.exceptions.CoreException;
+import br.com.joacirjunior.corebanking.exceptions.*;
 import br.com.joacirjunior.corebanking.repository.AccountRepository;
 import br.com.joacirjunior.corebanking.repository.TransactionRepository;
 import br.com.joacirjunior.corebanking.services.ITransactionService;
@@ -58,31 +59,51 @@ public class TransactionService implements ITransactionService {
 
     public Optional<TransactionEntity> sensibilizeAccountBalance(TransactionEntity transaction) {
         LOGGER.info("sensibilizeAccountBalance");
-        AccountEntity account = transaction.getAccount();
+
         if(transaction.getOperationType().getTransactionType().compareTo(ETransactionType.CREDIT) == 0){
             LOGGER.info("Credit operation : {}", transaction.toString());
-            LOGGER.debug("Updating account balance");
-            account.setBalance(account.getBalance().add(transaction.getAmount())
-                    .setScale(2, BigDecimal.ROUND_HALF_EVEN));
-            this.accountRepository.save(account);
-            LOGGER.debug("Inserting transaction");
-            return Optional.ofNullable(this.transactionRepository.save(transaction));
+            return this.creditOperation(transaction);
         } else {
             LOGGER.info("Debit operation : {}", transaction.toString());
-            if(transaction.getAccount().getBalance().compareTo(transaction.getAmount().abs()) >= 0){
-                LOGGER.debug("Balance positive for debit operation");
-                LOGGER.debug("Updating account balance");
-                account.setBalance(account.getBalance().subtract(transaction.getAmount().abs())
-                        .setScale(2, BigDecimal.ROUND_HALF_EVEN));
-                this.accountRepository.save(account);
-                return Optional.ofNullable(this.transactionRepository.save(transaction));
-            } else {
-                LOGGER.error("Insufficient funds : {}", transaction.toString());
-                throw new CoreException(
-                        new ApiErrorResponse(EValidationResponse.TRANSACTION_NOT_EFETIVATED_INSUFFICIENT_FUNDS));
-            }
+            return this.debitOperation(transaction);
         }
 
+    }
+
+    private Optional<TransactionEntity> debitOperation(TransactionEntity transaction) {
+        AccountEntity account = transaction.getAccount();
+        if(transaction.getAccount().getBalance().compareTo(transaction.getAmount().abs()) >= 0){
+            LOGGER.debug("Balance positive for debit operation");
+            LOGGER.debug("Updating account balance");
+            account.setBalance(account.getBalance().subtract(transaction.getAmount().abs())
+                    .setScale(2, BigDecimal.ROUND_HALF_EVEN));
+            if(account.getAvailableLimit().subtract(transaction.getAmount().abs()).compareTo(BigDecimal.ZERO) < 0){
+                LOGGER.error("LIMIT INVALID FOR : {}", account.toString());
+                throw new CoreException(new ApiErrorResponse(EValidationResponse.INVALID_LIMIT));
+            }
+            account.setAvailableLimit(account.getAvailableLimit().subtract(transaction.getAmount().abs()));
+            this.accountRepository.save(account);
+            return Optional.ofNullable(this.transactionRepository.save(transaction));
+        } else {
+            LOGGER.error("Insufficient funds : {}", transaction.toString());
+            throw new CoreException(
+                    new ApiErrorResponse(EValidationResponse.TRANSACTION_NOT_EFETIVATED_INSUFFICIENT_FUNDS));
+        }
+    }
+
+    private Optional<TransactionEntity> creditOperation(TransactionEntity transaction) {
+        LOGGER.debug("Updating account balance");
+        AccountEntity account = transaction.getAccount();
+        account.setBalance(account.getBalance().add(transaction.getAmount())
+                .setScale(2, BigDecimal.ROUND_HALF_EVEN));
+        if(account.getAvailableLimit().add(transaction.getAmount()).compareTo(ELimitProfile.PADRAO.getLimit()) >= 0){
+            LOGGER.error("LIMIT INVALID FOR : {}", account.toString());
+            throw new CoreException(new ApiErrorResponse(EValidationResponse.INVALID_LIMIT));
+        }
+        account.setAvailableLimit(account.getAvailableLimit().add(transaction.getAmount()));
+        this.accountRepository.save(account);
+        LOGGER.debug("Inserting transaction");
+        return Optional.ofNullable(this.transactionRepository.save(transaction));
     }
 
 }

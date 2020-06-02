@@ -12,6 +12,7 @@ public enum EValidationResponse {
     VALIDATION_ERROR_REQUEST_PARAMS("ERR-0002", "WS-CORE-BANKING-SYSTEM", "TEC", "VALIDATION", "Request with invalid parameters"),
 
     UNAUTHORIZED("ERR-1000", null, null, "Not authorized", "Not authorized"),
+    INVALID_LIMIT("ERR-1001", null, null, "Not authorized", "InvalidLimit"),
 
     VALIDATION_INVALID_ACCOUNT("ERR-2000", "WS-CORE-BANKING-SYSTEM", "TEC", "VALIDATION", "Invalid account"),
     VALIDATION_ACCOUNT_NOT_FOUND("ERR-2001", "WS-CORE-BANKING-SYSTEM", "TEC", "VALIDATION", "Account not found"),
