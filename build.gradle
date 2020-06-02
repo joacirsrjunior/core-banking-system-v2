@@ -51,9 +51,13 @@ dependencies {
     compile group: 'javax.validation', name: 'validation-api', version: '2.0.0.Final'
     compile group: 'org.postgresql', name: 'postgresql', version: '42.2.5'
     compile group: 'org.flywaydb', name: 'flyway-core', version: '5.2.4'
+    compile group: 'org.modelmapper', name: 'modelmapper', version: '0.7.5'
 
     // Tests
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testCompile group: 'org.testcontainers', name: 'postgresql', version: '1.10.6'
+    testCompile "org.testcontainers:testcontainers:1.14.3"
+    testCompile "org.testcontainers:spock:1.14.3"
 
     // JUnit 5
     testImplementation 'org.junit.platform:junit-platform-runner'

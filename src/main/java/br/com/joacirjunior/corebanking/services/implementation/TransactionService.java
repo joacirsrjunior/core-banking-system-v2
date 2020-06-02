@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @Service
@@ -55,13 +56,14 @@ public class TransactionService implements ITransactionService {
         return optTransaction;
     }
 
-    private Optional<TransactionEntity> sensibilizeAccountBalance(TransactionEntity transaction) {
+    public Optional<TransactionEntity> sensibilizeAccountBalance(TransactionEntity transaction) {
         LOGGER.info("sensibilizeAccountBalance");
         AccountEntity account = transaction.getAccount();
         if(transaction.getOperationType().getTransactionType().compareTo(ETransactionType.CREDIT) == 0){
             LOGGER.info("Credit operation : {}", transaction.toString());
             LOGGER.debug("Updating account balance");
-            account.setBalance(account.getBalance().add(transaction.getAmount()));
+            account.setBalance(account.getBalance().add(transaction.getAmount())
+                    .setScale(2, BigDecimal.ROUND_HALF_EVEN));
             this.accountRepository.save(account);
             LOGGER.debug("Inserting transaction");
             return Optional.ofNullable(this.transactionRepository.save(transaction));
@@ -70,7 +72,8 @@ public class TransactionService implements ITransactionService {
             if(transaction.getAccount().getBalance().compareTo(transaction.getAmount().abs()) >= 0){
                 LOGGER.debug("Balance positive for debit operation");
                 LOGGER.debug("Updating account balance");
-                account.setBalance(account.getBalance().subtract(transaction.getAmount().abs()));
+                account.setBalance(account.getBalance().subtract(transaction.getAmount().abs())
+                        .setScale(2, BigDecimal.ROUND_HALF_EVEN));
                 this.accountRepository.save(account);
                 return Optional.ofNullable(this.transactionRepository.save(transaction));
             } else {

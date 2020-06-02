@@ -41,10 +41,10 @@ Por fim, abaixo seguem alguns comandos para inicialização da aplicação e mon
 
 * Etapa 1) Build pelo Gradle:
     * Por linha de comando, na pasta raiz do projeto, digite:<br/>
-      ```            ./gradlew build```
+      ```            sudo ./gradlew build```
 * Etapa 2) Iniciando aplicação:
     * Por linha de comando, na pasta raiz do projeto, digite:<br/>
-      ```            docker-compose up --build```
+      ```            sudo docker-compose up --build```
 * Etapa 3) Parando aplicação:
     * Por linha de comando, na pasta raiz do projeto, digite:<br/>
       ```            docker-compose stop```

@@ -32,6 +32,7 @@ public class AccountService implements IAccountService {
     public Optional<AccountEntity> create(AccountDTO accountDTO){
         AccountEntity account = AccountMapper.convertToEntity(accountDTO);
         AccountValidation.validateAll(account);
+        LOGGER.debug("Creating account : {}", account.toString());
         Optional<AccountEntity> opt = this.accountRepository.findByDocumentNumber(account.getDocumentNumber());
         if(opt.isEmpty()){
             return Optional.ofNullable(this.accountRepository.save(account));
