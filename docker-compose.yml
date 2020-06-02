@@ -9,23 +9,25 @@ services:
       - 8084
     container_name: core
     depends_on:
-      - mongo
+      - postgres-compose
     links:
-      - mongo
+      - postgres-compose
     networks:
-      - mongo-compose-network
-  mongo:
-    image: mongo
+      - postgres-compose-network
+  postgres-compose:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: "admin"
     ports:
-      - 27017:27017
+      - 15432:15432
     expose:
-      - 27017
-    container_name: mongo-core
+      - 15432
+    container_name: postgres-core
     volumes:
-      - /home/core/Docker/Volumes/MongoDB:/data/db
+      - /home/core/Docker/Volumes/PostgreSQL:/var/lib/postgresql/data
     networks:
-      - mongo-compose-network
+      - postgres-compose-network
 
 networks:
-  mongo-compose-network:
+  postgres-compose-network:
     driver: bridge

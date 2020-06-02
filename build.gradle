@@ -11,14 +11,12 @@ buildscript {
 }
 
 plugins {
+    id 'org.springframework.boot' version '2.3.0.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id 'java'
 }
 
-apply plugin: 'java'
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
-
-group = 'br.com.bank'
+group = 'br.com.joacirjunior'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
@@ -28,7 +26,7 @@ task fatJar(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'Gradle Jar File',
                 'Implementation-Version': version,
-                'Main-Class': 'br.com.bank.core.CoreApplication'
+                'Main-Class': 'br.com.joacirjunior.corebanking.CoreApplication'
     }
     baseName = project.name + '-all'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
@@ -40,27 +38,35 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    set('springCloudVersion', "Hoxton.SR5")
+}
+
 // Project dependencies
 dependencies {
-
-    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
-
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.3.0.RELEASE'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.3.0.RELEASE'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: '2.3.0.RELEASE'
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.10.4'
+    compile group: 'javax.validation', name: 'validation-api', version: '2.0.0.Final'
+    compile group: 'org.postgresql', name: 'postgresql', version: '42.2.5'
+    compile group: 'org.flywaydb', name: 'flyway-core', version: '5.2.4'
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'io.projectreactor:reactor-test'
-
-    // Embedded MongoDB
-    testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo'
-    
     // Tests
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'io.projectreactor:reactor-test'
-    
+
     // JUnit 5
     testImplementation 'org.junit.platform:junit-platform-runner'
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-    
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+test {
+    useJUnitPlatform()
 }
