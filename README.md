@@ -20,10 +20,10 @@ Embora não fosse fundamental, alguns outros endpoints também foram desenvolvid
 
 ## Banco de Dados<br/>
 Neste projeto foi utilizado o banco de dados relacional PostgreSQL.<br/>
-Porta padrão : 15432.<br/>
+Porta padrão : 5432.<br/>
 
 ## Portas Utilizadas
-Esta aplicação utiliza as portas 8084 (core-banking-system) e 15432 (PostgreSQL).<br/>
+Esta aplicação utiliza as portas 8084 (core-banking-system) e 5432 (PostgreSQL).<br/>
 Caso a aplicação seja rodada localmente, certifique-se que estas portas estejam liberadas ou, caso preferir, altere-as no arquivo <i>application.properties</i> do projeto.
 
 ## Dummy Data / Dados para testes
